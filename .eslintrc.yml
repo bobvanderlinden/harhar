@@ -1,0 +1,14 @@
+---
+root: true
+
+extends:
+  - eslint:recommended
+  - plugin:node/recommended
+  - plugin:jest/recommended
+  - plugin:prettier/recommended
+
+env:
+  node: true
+  jest: true
+  jest/globals: true
+  es6: true

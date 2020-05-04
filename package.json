@@ -1,0 +1,61 @@
+{
+  "name": "harhar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/cli.js",
+  "type": "commonjs",
+  "bin": {
+    "harhar": "src/main.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:updateSnapshot": "jest --updateSnapshot",
+    "format": "eslint --fix '**/*.js' && prettier --write '**/*.js'",
+    "lint": "eslint ."
+  },
+  "engines": {
+    "node": ">=12.3.0"
+  },
+  "author": "Bob van der Linden <bobvanderlinden@gmail.com>",
+  "license": "ISC",
+  "release": {
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "releaseRules": [
+            {
+              "type": "refactor",
+              "release": "patch"
+            },
+            {
+              "type": "style",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  },
+  "dependencies": {
+    "commander": "^5.0.0",
+    "jest-diff": "^25.3.0",
+    "node-fetch": "^2.6.0",
+    "object-hash": "^2.0.3",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-jest": "^23.8.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^25.2.7",
+    "prettier": "^2.0.4",
+    "semantic-release": "^17.0.4"
+  }
+}
