@@ -159,6 +159,9 @@ async function serverreplay({ port, input, record, ...options }) {
 function defineCommand(program) {
   return program
     .command("serverreplay")
+    .description(
+      `Run a HTTP server that replays responses from a HAR file by looking up the incoming request by specific properties. The incoming requests and outgoing responses can be recorded to a new HAR file.`
+    )
     .requiredOption("--port <port>")
     .requiredOption("--input <har_file>")
     .option("--ignore-hostname", "", false)

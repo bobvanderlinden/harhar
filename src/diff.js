@@ -54,6 +54,10 @@ async function diff(input1, input2) {
 function defineCommand(program) {
   return program
     .command("diff <input1> <input2>")
+    .description(
+      `Compares two HAR files for differences.
+It does so by looking up X-Request-ID headers to find matching requests and shows what parts of the requests and responses are different.`
+    )
     .action(createCommandAction(diff));
 }
 

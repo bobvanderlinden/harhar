@@ -91,6 +91,10 @@ async function proxy({
 function defineCommand(program) {
   return program
     .command("proxy")
+    .description(
+      `Record traffic between a HTTP client and server. This passes incoming requests towards a host and passes the resulting response back to the client.
+This records incoming requests and outgoing responses.`
+    )
     .requiredOption("--listen-port <port>")
     .option("--listen-host <host>")
     .requiredOption("--connect-host <host>")

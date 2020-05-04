@@ -31,6 +31,9 @@ async function clientreplay({ input, record, ...options }) {
 function defineCommand(program) {
   return program
     .command("clientreplay")
+    .description(
+      `Replays the requests of a HAR file. The responses that were sent back can optionally be recorded to a new HAR file.`
+    )
     .requiredOption("--input <har_file>")
     .requiredOption("--record <har_file>")
     .option("--replace-hostname <new_hostname>")

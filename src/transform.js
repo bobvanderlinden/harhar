@@ -141,6 +141,9 @@ async function transform({ input, output, ...options }) {
 function defineCommand(program) {
   return program
     .command("transform")
+    .description(
+      `Transforms a HAR file and outputs the result to a new HAR file.`
+    )
     .requiredOption("--input <har_file>")
     .requiredOption("--output <har_file>")
     .option("--ignore-headers <header>", "", collect, [])
