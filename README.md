@@ -4,8 +4,8 @@ A CLI tool to record, replay, manipulate and analyze HTTP archive files.
 
 Some usages are:
 
-* Reproduce HTTP traffic
-* Analyze HTTP traffic after the fact
+* Reproduce HTTP traffic as recorded by a browser
+* Record non-browser traffic
 * Mock HTTP server based on recorded traffic
 * Compare HTTP traffic of different systems
 
