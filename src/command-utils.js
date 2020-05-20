@@ -1,4 +1,5 @@
 const winston = require("winston");
+const { AbortController } = require("abort-controller");
 
 function collect(val, memo) {
   memo.push(val);
@@ -17,7 +18,21 @@ function createCommandAction(fn) {
   };
 }
 
+function createAbortController() {
+  const abortController = new AbortController();
+
+  function abort() {
+    abortController.abort();
+  }
+
+  process.on("SIGINT", abort);
+  process.on("SIGTERM", abort);
+
+  return abortController;
+}
+
 module.exports = {
   collect,
   createCommandAction,
+  createAbortController,
 };

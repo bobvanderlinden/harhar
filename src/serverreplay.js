@@ -8,7 +8,11 @@ const {
   nodeRequestToHarRequest,
   harResponseToNodeResponse,
 } = require("./node-conversion");
-const { collect, createCommandAction } = require("./command-utils");
+const {
+  collect,
+  createCommandAction,
+  createAlertController,
+} = require("./command-utils");
 const { runServer } = require("./server");
 
 function hashHarRequest(
@@ -94,6 +98,7 @@ function hashHarRequest(
 }
 
 async function serverreplay({ port, input, record, ...options }) {
+  const alertController = createAlertController();
   const harInput = await readHarFile(input);
   const hashedEntries = Object.fromEntries(
     harInput.log.entries.map((entry) => [
@@ -140,6 +145,7 @@ async function serverreplay({ port, input, record, ...options }) {
   await runServer({
     server,
     port,
+    signal: alertController.signal,
   });
 
   if (record) {

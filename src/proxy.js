@@ -7,15 +7,49 @@ const {
   getHarResponseFromHarRequest,
   writeNodeResponseFromHarResponse,
 } = require("./node-conversion");
-const { createCommandAction } = require("./command-utils");
+const {
+  createCommandAction,
+  createAbortController,
+} = require("./command-utils");
 const { runServer } = require("./server");
 
-async function proxy({
+async function runCommand({
   listenHost,
   listenPort,
   connectHost,
   connectPort,
   record,
+}) {
+  const abortController = createAbortController();
+
+  const entries = await run({
+    listenHost,
+    listenPort,
+    connectHost,
+    connectPort,
+    signal: abortController.signal,
+  });
+
+  if (record) {
+    log.info({
+      message: "Writing HAR file...",
+      filename: record,
+    });
+    await writeHarFile(
+      record,
+      createHar({
+        entries,
+      })
+    );
+  }
+}
+
+async function run({
+  listenHost,
+  listenPort,
+  connectHost,
+  connectPort,
+  signal,
 }) {
   const recordedEntries = [];
   const server = http.createServer(handleRequest);
@@ -43,20 +77,12 @@ async function proxy({
     server,
     port: listenPort,
     hostname: listenHost,
+    signal,
   });
 
-  if (record) {
-    log.info({
-      message: "Writing HAR file...",
-      filename: record,
-    });
-    await writeHarFile(
-      record,
-      createHar({
-        entries: recordedEntries,
-      })
-    );
-  }
+  return createHar({
+    entries: recordedEntries,
+  });
 
   async function handleRequest(req, res) {
     const incomingHarRequest = await getHarRequestFromNodeRequest(req);
@@ -100,10 +126,11 @@ This records incoming requests and outgoing responses.`
     .requiredOption("--connect-host <host>")
     .requiredOption("--connect-port <port>")
     .requiredOption("--record <har_file>")
-    .action(createCommandAction(proxy));
+    .action(createCommandAction(runCommand));
 }
 
 module.exports = {
-  proxy,
+  runCommand,
+  run,
   defineCommand,
 };

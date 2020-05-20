@@ -6,7 +6,7 @@ const http = require("http");
 const https = require("https");
 const { fromRawHeaders, toObject } = require("./name-value");
 const { createErrorHarResponse } = require("./har");
-const { StringDecoder } = require('string_decoder');
+const { StringDecoder } = require("string_decoder");
 
 function getHeaders(req) {
   const headers = [];
@@ -250,6 +250,8 @@ const getHarRequestFromNodeRequest = nodeRequestToHarRequest;
 const writeNodeResponseFromHarResponse = harResponseToNodeResponse;
 
 module.exports = {
+  doRequest,
+  readStreamText,
   nodeRequestToHarRequest,
   harResponseToNodeResponse,
   getHarRequestFromNodeRequest,

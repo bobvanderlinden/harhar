@@ -42,6 +42,7 @@
     ]
   },
   "dependencies": {
+    "abort-controller": "^3.0.0",
     "commander": "^5.0.0",
     "jest-diff": "^25.3.0",
     "node-fetch": "^2.6.0",

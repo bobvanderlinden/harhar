@@ -5,6 +5,7 @@ function runServer({
   port = 3000,
   hostname = undefined,
   backlog = undefined,
+  signal = undefined,
 }) {
   return new Promise((resolve, reject) => {
     const connections = [];
@@ -29,10 +30,7 @@ function runServer({
       connections.splice(connections.indexOf(connection), 1);
     }
 
-    async function cleanup() {
-      process.removeListener("SIGINT", cleanup);
-      process.removeListener("SIGTERM", cleanup);
-
+    function cleanup() {
       log.debug("Closing server");
       server.close();
 
@@ -40,13 +38,14 @@ function runServer({
 
       log.debug("Closing connections");
       for (const connection of connections) {
-        connection.close();
+        connection.destroy();
       }
-      resolve();
     }
 
-    process.on("SIGINT", cleanup);
-    process.on("SIGTERM", cleanup);
+    signal.addEventListener("abort", () => {
+      cleanup();
+      resolve();
+    });
 
     server.listen(port, hostname, backlog, (err) => {
       if (err) {
