@@ -6,6 +6,7 @@ const http = require("http");
 const https = require("https");
 const { fromRawHeaders, toObject } = require("./name-value");
 const { createErrorHarResponse } = require("./har");
+const { StringDecoder } = require('string_decoder');
 
 function getHeaders(req) {
   const headers = [];
@@ -22,32 +23,69 @@ function convertURLSearchParamsToNameValues(urlSearchParams) {
   }));
 }
 
-function readStreamText(stream) {
+function readStreamText(stream, encoding = "utf8") {
   return new Promise((resolve, reject) => {
-    let data = "";
+    const decoder = new StringDecoder(encoding);
     stream.on("data", (chunk) => {
-      data += chunk.toString();
+      decoder.write(chunk);
     });
     stream.once("error", (err) => {
       reject(err);
     });
     stream.on("end", () => {
-      resolve(data);
+      const result = decoder.end();
+      resolve(result);
     });
   });
 }
 
-async function nodeRequestToHarRequest(nodeRequest) {
-  const text = await readStreamText(nodeRequest);
+async function readStreamBase64(stream) {
+  return await readStreamText(stream, "base64");
+}
+
+function isBinaryMimeType(mimeType) {
+  if (!mimeType) {
+    return false;
+  }
+  if (/^text\//.test(mimeType)) {
+    return false;
+  }
+  if (/^image\//.test(mimeType)) {
+    return true;
+  }
+  if (/^application\/octet-stream/.test(mimeType)) {
+    return true;
+  }
+  if (/^application\/x-www-form-urlencoded/.test(mimeType)) {
+    return false;
+  }
+  if (/^multipart\//.test(mimeType)) {
+    return true;
+  }
+  return false;
+}
+
+async function getPostDataFromNodeRequest(nodeRequest) {
   const mimeType = nodeRequest.headers["content-type"];
+  const isBinary = isBinaryMimeType(mimeType);
+  return isBinary
+    ? {
+        mimeType,
+        encoding: "base64",
+        text: await readStreamBase64(nodeRequest),
+      }
+    : {
+        mimeType,
+        text: await readStreamText(nodeRequest),
+      };
+}
+
+async function nodeRequestToHarRequest(nodeRequest) {
   const host = nodeRequest.headers["host"];
   const url = new URL(nodeRequest.url, `http://${host}`);
   const headers = getHeaders(nodeRequest);
   const queryString = convertURLSearchParamsToNameValues(url.searchParams);
-  const postData = (text || undefined) && {
-    mimeType,
-    text,
-  };
+  const postData = await getPostDataFromNodeRequest(nodeRequest);
   return {
     method: nodeRequest.method,
     url: url.toString(),
@@ -134,13 +172,19 @@ async function getHarResponseFromHttpResponse(response) {
   const status = response.statusCode;
   const statusText = response.statusMessage;
   const headers = fromRawHeaders(response.rawHeaders);
-  const mimeType = response.headers["Content-Type"];
-  const bodyText = bodyBuffer.toString("utf-8");
-  const content = {
-    size: bodyBuffer.length,
-    mimeType,
-    text: bodyText,
-  };
+  const mimeType = response.headers["content-type"];
+  const content = isBinaryMimeType(mimeType)
+    ? {
+        size: bodyBuffer.length,
+        mimeType,
+        encoding: "base64",
+        text: bodyBuffer.toString("base64"),
+      }
+    : {
+        size: bodyBuffer.length,
+        mimeType,
+        text: bodyBuffer.toString("utf-8"),
+      };
   return {
     status,
     statusText,
