@@ -58,5 +58,10 @@
     "jest": "^25.2.7",
     "prettier": "^2.0.4",
     "semantic-release": "^17.0.4"
+  },
+  "jest": {
+    "setupFiles": [
+      "./test/setup.js"
+    ]
   }
 }
