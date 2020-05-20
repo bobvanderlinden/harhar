@@ -92,8 +92,8 @@ async function diff(input1, input2, options) {
       }
       console.log(
         [`--- ${input1}`, `+++ ${input2}`]
-          .concat(entry1.map((entry) => ` -- ${stringifyEntry(entry)}`))
-          .concat(entry2.map((entry) => ` ++ ${stringifyEntry(entry)}`))
+          .concat(entry1.map((entry) => `-- ${stringifyEntry(entry)}`))
+          .concat(entry2.map((entry) => `++ ${stringifyEntry(entry)}`))
           .join("\n")
       );
       console.log(diffString);
