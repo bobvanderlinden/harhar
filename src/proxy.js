@@ -22,7 +22,7 @@ async function runCommand({
 }) {
   const abortController = createAbortController();
 
-  const entries = await run({
+  const result = await run({
     listenHost,
     listenPort,
     connectHost,
@@ -35,12 +35,7 @@ async function runCommand({
       message: "Writing HAR file...",
       filename: record,
     });
-    await writeHarFile(
-      record,
-      createHar({
-        entries,
-      })
-    );
+    await writeHarFile(record, result);
   }
 }
 
