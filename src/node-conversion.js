@@ -129,12 +129,14 @@ async function writeNodeResponseFromHarResponse(harResponse, nodeResponse) {
   if (harResponse.content.mimeType) {
     nodeResponse.setHeader("Content-Type", harResponse.content.mimeType);
   }
-  let body = Readable.from([
-    Buffer.from(
-      harResponse.content.text,
-      harResponse.content.encoding || "utf8"
-    ),
-  ]);
+  let body = harResponse.content.text
+    ? Readable.from([
+        Buffer.from(
+          harResponse.content.text,
+          harResponse.content.encoding || "utf8"
+        ),
+      ])
+    : Readable.from([]);
   if (nodeResponse.getHeader("Content-Encoding") === "gzip") {
     body = body.pipe(zlib.createGzip());
   }
