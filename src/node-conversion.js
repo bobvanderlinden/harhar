@@ -26,14 +26,15 @@ function convertURLSearchParamsToNameValues(urlSearchParams) {
 function readStreamText(stream, encoding = "utf8") {
   return new Promise((resolve, reject) => {
     const decoder = new StringDecoder(encoding);
+    let result = "";
     stream.on("data", (chunk) => {
-      decoder.write(chunk);
+      result += decoder.write(chunk);
     });
     stream.once("error", (err) => {
       reject(err);
     });
     stream.on("end", () => {
-      const result = decoder.end();
+      result += decoder.end();
       resolve(result);
     });
   });
