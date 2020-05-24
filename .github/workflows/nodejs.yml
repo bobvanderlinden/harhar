@@ -1,0 +1,30 @@
+name: harhar CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Read .node-version
+      id: node_version
+      run: echo ::set-output name=NODE_VERSION::$(cat .node-version)
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ steps.node_version.outputs.NODE_VERSION }}
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
+    - name: Action For Semantic Release
+      uses: cycjimmy/semantic-release-action@v2.4.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
