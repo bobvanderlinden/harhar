@@ -81,7 +81,7 @@ async function getPostDataFromNodeRequest(nodeRequest) {
       };
 }
 
-async function nodeRequestToHarRequest(nodeRequest) {
+async function getHarRequestFromNodeRequest(nodeRequest) {
   const host = nodeRequest.headers["host"];
   const url = new URL(nodeRequest.url, `http://${host}`);
   const headers = getHeaders(nodeRequest);
@@ -114,7 +114,7 @@ async function readStream(stream) {
   });
 }
 
-async function harResponseToNodeResponse(harResponse, nodeResponse) {
+async function writeNodeResponseFromHarResponse(harResponse, nodeResponse) {
   if (harResponse.status === 0) {
     // The response is invalid. Kill the connection.
     return nodeResponse.socket.destroy();
@@ -249,14 +249,9 @@ async function getHarResponseFromHarRequest(request, { agent }) {
   );
 }
 
-const getHarRequestFromNodeRequest = nodeRequestToHarRequest;
-const writeNodeResponseFromHarResponse = harResponseToNodeResponse;
-
 module.exports = {
   doRequest,
   readStreamText,
-  nodeRequestToHarRequest,
-  harResponseToNodeResponse,
   getHarRequestFromNodeRequest,
   writeNodeResponseFromHarResponse,
   getHarResponseFromHarRequest,

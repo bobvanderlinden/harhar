@@ -5,8 +5,8 @@ const hash = require("object-hash");
 const { readHarFile, writeHarFile, createHar, createEntry } = require("./har");
 const log = require("winston");
 const {
-  nodeRequestToHarRequest,
-  harResponseToNodeResponse,
+  getHarRequestFromNodeRequest,
+  writeNodeResponseFromHarResponse,
 } = require("./node-conversion");
 const {
   collect,
@@ -109,7 +109,7 @@ async function serverreplay({ port, input, record, ...options }) {
   const recordedEntries = [];
 
   const server = http.createServer(async (req, res) => {
-    const harRequest = await nodeRequestToHarRequest(req);
+    const harRequest = await getHarRequestFromNodeRequest(req);
     log.debug({
       message: "Received request",
       request: harRequest,
@@ -138,7 +138,7 @@ async function serverreplay({ port, input, record, ...options }) {
         })
       );
 
-      await harResponseToNodeResponse(harResponse, res);
+      await writeNodeResponseFromHarResponse(harResponse, res);
     }
   });
 
