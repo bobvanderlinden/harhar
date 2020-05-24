@@ -1,47 +1,19 @@
 const { run } = require("../src/proxy");
-const { doRequest } = require("../src/node-conversion");
 const AbortController = require("abort-controller");
-const http = require("http");
-const { readStreamText } = require("../src/node-conversion");
 const { Readable } = require("stream");
+const { DEFAULT_HOSTNAME, startServer, request } = require("./support/http");
 
-const DEFAULT_HOSTNAME = "localhost";
-const DEFAULT_LISTEN_PORT = 80;
-const DEFAULT_PROXY_PORT = 81;
-const DEFAULT_HANDLER = (req, res) => res.end();
-
-async function startServer(
-  { hostname = DEFAULT_HOSTNAME, port = DEFAULT_PROXY_PORT },
-  handler = DEFAULT_HANDLER
-) {
-  const server = http.createServer((req, res) => {
-    res.sendDate = false;
-    return handler(req, res);
-  });
-  await new Promise((resolve) => server.listen(port, hostname, 1, resolve));
-  return server;
-}
-
-async function request(options) {
-  const response = await doRequest({
-    protocol: http,
-    hostname: DEFAULT_HOSTNAME,
-    port: DEFAULT_LISTEN_PORT,
-    url: "/",
-    ...options,
-  });
-  response.body = await readStreamText(response);
-  return response;
-}
+const SOURCE_PORT = 80;
+const TARGET_PORT = 81;
 
 async function runProxy(block) {
   let result;
   const abortController = new AbortController();
   const runningProxy = run({
     listenHost: DEFAULT_HOSTNAME,
-    listenPort: DEFAULT_LISTEN_PORT,
+    listenPort: SOURCE_PORT,
     connectHost: DEFAULT_HOSTNAME,
-    connectPort: DEFAULT_PROXY_PORT,
+    connectPort: TARGET_PORT,
     signal: abortController.signal,
   }).then((_result) => {
     result = _result;
@@ -60,7 +32,9 @@ async function runProxy(block) {
 
 describe("proxy", () => {
   it("returns a correct HAR when there is no request", async () => {
-    await startServer({});
+    await startServer({
+      port: TARGET_PORT,
+    });
     const result = await runProxy(() => {});
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -77,9 +51,13 @@ describe("proxy", () => {
   });
 
   it("returns a correct HAR when there is a single GET request", async () => {
-    await startServer({});
+    await startServer({
+      port: TARGET_PORT,
+    });
     const result = await runProxy(async () => {
-      await request({});
+      await request({
+        port: SOURCE_PORT,
+      });
     });
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -148,9 +126,12 @@ describe("proxy", () => {
     `);
   });
   it("returns a correct HAR when there is a single POST request", async () => {
-    await startServer({});
+    await startServer({
+      port: TARGET_PORT,
+    });
     const result = await runProxy(async () => {
       await request({
+        port: SOURCE_PORT,
         method: "POST",
         headers: {
           "Content-Type": "text/plain",
