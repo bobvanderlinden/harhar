@@ -5,11 +5,10 @@ const { transformRequest } = require("./transform");
 const { createCommandAction } = require("./command-utils");
 const http = require("http");
 
-async function clientreplay({ input, record, ...options }) {
+async function run({ inputHar, ...options }) {
   const agent = new http.Agent({ keepAlive: true });
-  const har = await readHarFile(input);
   const recordedEntries = [];
-  for (const entry of har.log.entries) {
+  for (const entry of inputHar.log.entries) {
     const readHarRequest = entry.request;
     log.debug("Read request", { readHarRequest });
     const outgoingHarRequest = transformRequest(readHarRequest, options);
@@ -25,7 +24,13 @@ async function clientreplay({ input, record, ...options }) {
       })
     );
   }
-  await writeHarFile(record, createHar({ entries: recordedEntries }));
+  return createHar({ entries: recordedEntries });
+}
+
+async function runCommand({ input, record, ...options }) {
+  const inputHar = await readHarFile(input);
+  const result = await run({ inputHar, ...options });
+  await writeHarFile(record, result);
 }
 
 function defineCommand(program) {
@@ -38,10 +43,11 @@ function defineCommand(program) {
     .requiredOption("--record <har_file>")
     .option("--replace-hostname <new_hostname>")
     .option("--replace-port <new_port>")
-    .action(createCommandAction(clientreplay));
+    .action(createCommandAction(runCommand));
 }
 
 module.exports = {
-  clientreplay,
+  run,
+  runCommand,
   defineCommand,
 };
