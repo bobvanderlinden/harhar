@@ -3,7 +3,6 @@ const { doRequest } = require("../src/node-conversion");
 const AbortController = require("abort-controller");
 const http = require("http");
 const { readStreamText } = require("../src/node-conversion");
-const { runServer } = require("../src/server");
 const { Readable } = require("stream");
 
 const DEFAULT_HOSTNAME = "localhost";
