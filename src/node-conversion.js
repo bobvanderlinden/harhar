@@ -127,12 +127,12 @@ async function harResponseToNodeResponse(harResponse, nodeResponse) {
   if (harResponse.content.mimeType) {
     nodeResponse.setHeader("Content-Type", harResponse.content.mimeType);
   }
-  let body = Readable.from(
+  let body = Readable.from([
     Buffer.from(
       harResponse.content.text,
       harResponse.content.encoding || "utf8"
-    )
-  );
+    ),
+  ]);
   if (nodeResponse.getHeader("Content-Encoding") === "gzip") {
     body = body.pipe(zlib.createGzip());
   }
@@ -220,10 +220,12 @@ async function getHarResponseFromHarRequest(request, { agent }) {
   const headers = toObject(request.headers);
   const body =
     request.postData && request.postData.text
-      ? Readable.from(
-          request.postData.text,
-          request.postData.encoding || "utf-8"
-        )
+      ? Readable.from([
+          Buffer.from(
+            request.postData.text,
+            request.postData.encoding || "utf-8"
+          ),
+        ])
       : undefined;
 
   return await tryCatch(
