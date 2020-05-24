@@ -69,16 +69,18 @@ function isBinaryMimeType(mimeType) {
 async function getPostDataFromNodeRequest(nodeRequest) {
   const mimeType = nodeRequest.headers["content-type"];
   const isBinary = isBinaryMimeType(mimeType);
-  return isBinary
-    ? {
-        mimeType,
-        encoding: "base64",
-        text: await readStreamBase64(nodeRequest),
-      }
-    : {
-        mimeType,
-        text: await readStreamText(nodeRequest),
-      };
+  const encoding = isBinary ? "base64" : undefined;
+  const text = isBinary
+    ? await readStreamBase64(nodeRequest)
+    : await readStreamText(nodeRequest);
+  if (text === "") {
+    return undefined;
+  }
+  return {
+    mimeType,
+    encoding,
+    text,
+  };
 }
 
 async function getHarRequestFromNodeRequest(nodeRequest) {
