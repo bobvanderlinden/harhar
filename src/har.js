@@ -58,6 +58,35 @@ function createEntry({
   };
 }
 
+function createRequest({ url, ...request }) {
+  return {
+    url,
+    headers: [],
+    queryString: [],
+    headersSize: -1,
+    bodySize: -1,
+    ...request,
+  };
+}
+
+function createResponse(response) {
+  return {
+    status: 200,
+    statusText: "OK",
+    httpVersion: "1.1",
+    headers: [],
+    cookies: [],
+    content: {
+      size: 0,
+      mimeType: "x-unknown",
+    },
+    redirectURL: "",
+    headersSize: -1,
+    bodySize: -1,
+    ...response,
+  };
+}
+
 function createErrorHarResponse(errorMessage) {
   return {
     status: 0,
@@ -83,4 +112,6 @@ module.exports = {
   createHar,
   createEntry,
   createErrorHarResponse,
+  createRequest,
+  createResponse,
 };
