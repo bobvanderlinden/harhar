@@ -1,4 +1,5 @@
 const http = require("http");
+const { readStreamText } = require("../src/node-conversion");
 
 describe("http", () => {
   it("when hosting server on port 80 we can respond with data", () => {
@@ -29,7 +30,7 @@ describe("http", () => {
     });
   });
 
-  it("test2", () => {
+  it("when hosting 2 servers we can send and receive requests individually", () => {
     return new Promise((cb) => {
       expect.assertions(2);
       http
@@ -76,6 +77,33 @@ describe("http", () => {
           }
         )
         .end();
+    });
+  });
+
+  it("when hosting a server we send post data", () => {
+    return new Promise((done) => {
+      expect.assertions(2);
+      http
+        .createServer(async (req, res) => {
+          const body = await readStreamText(req);
+          expect(body).toBe("this is post data");
+          res.end();
+        })
+        .listen(80, "localhost", 0, () => {});
+      const request = http.request(
+        {
+          host: "localhost",
+          port: 80,
+          url: "/",
+        },
+        async (response) => {
+          const responseBodyText = await readStreamText(response);
+          expect(responseBodyText).toBe("");
+          done();
+        }
+      );
+      request.write("this is post data");
+      request.end();
     });
   });
 });
