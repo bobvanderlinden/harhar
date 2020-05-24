@@ -11,7 +11,7 @@ const {
 const {
   collect,
   createCommandAction,
-  createAlertController,
+  createAbortController,
 } = require("./command-utils");
 const { runServer } = require("./server");
 
@@ -97,9 +97,7 @@ function hashHarRequest(
   return requestHash;
 }
 
-async function serverreplay({ port, input, record, ...options }) {
-  const alertController = createAlertController();
-  const harInput = await readHarFile(input);
+async function run({ port, harInput, abortController, ...options }) {
   const hashedEntries = Object.fromEntries(
     harInput.log.entries.map((entry) => [
       hashHarRequest(entry.request, options),
@@ -145,20 +143,26 @@ async function serverreplay({ port, input, record, ...options }) {
   await runServer({
     server,
     port,
-    signal: alertController.signal,
+    signal: abortController.signal,
   });
+
+  return createHar({
+    entries: recordedEntries,
+  });
+}
+
+async function runCommand({ port, input, record, ...options }) {
+  const abortController = createAbortController();
+  const harInput = await readHarFile(input);
+
+  const result = await run({ port, harInput, abortController, options });
 
   if (record) {
     log.info({
       message: "Writing HAR file...",
       filename: record,
     });
-    await writeHarFile(
-      record,
-      createHar({
-        entries: recordedEntries,
-      })
-    );
+    await writeHarFile(record, result);
   }
 }
 
@@ -181,10 +185,11 @@ function defineCommand(program) {
     .option("--ignore-query-string-param-order", "", false)
     .option("--ignore-post-data", "", false)
     .option("--record <har_file>", "")
-    .action(createCommandAction(serverreplay));
+    .action(createCommandAction(runCommand));
 }
 
 module.exports = {
-  serverreplay,
+  runCommand,
+  run,
   defineCommand,
 };
