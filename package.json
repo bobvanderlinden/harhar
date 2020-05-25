@@ -44,6 +44,7 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "commander": "^5.0.0",
+    "content-type": "^1.0.4",
     "jest-diff": "^25.3.0",
     "node-fetch": "^2.6.0",
     "object-hash": "^2.0.3",

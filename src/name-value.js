@@ -68,6 +68,18 @@ function toObject(nameValues) {
   return result;
 }
 
+function parseHeaders(headersString) {
+  const headerLines = headersString.split('\r\n');
+  return headerLines.map(headerLine => {
+    const [name, value] = headerLine.split(/: ?/, 2);
+    return { name, value };
+  });
+}
+
+function stringifyHeaders(nameValues) {
+  return nameValues.map(({name, value}) => `${name}: ${value}`).join('\r\n');
+}
+
 function matchIgnoreNames(
   nameValues,
   { matches, ignores, caseSensitive = true }
@@ -128,4 +140,6 @@ module.exports = {
   getValueByName,
   getValuesByName,
   setValueByName,
+  parseHeaders,
+  stringifyHeaders,
 };

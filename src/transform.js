@@ -1,10 +1,122 @@
 const { readHarFile, writeHarFile } = require("./har");
 const { URL } = require("url");
-const { matchIgnoreNames, sortByName, mapNames } = require("./name-value");
+const {
+  matchIgnoreNames,
+  sortByName,
+  mapNames,
+  getValueByName,
+  setValueByName,
+  parseHeaders,
+  stringifyHeaders,
+} = require("./name-value");
 const { collect, createCommandAction } = require("./command-utils");
+const contentType = require("content-type");
 
 function normalizeHeaderName(headerName) {
   return headerName.toLowerCase().split(/\W/).join("-");
+}
+
+function decodeText({ text, encoding }) {
+  switch (encoding) {
+    case "base64":
+      return Buffer.from(text, "base64").toString("binary");
+    case undefined:
+      return text;
+    default:
+      throw new Error(`Unsupported encoding: ${encoding}`);
+  }
+}
+
+function encodeText({ text, encoding }) {
+  switch (encoding) {
+    case "base64":
+      return Buffer.from(text, "binary").toString("base64");
+    case undefined:
+      return text;
+    default:
+      throw new Error(`Unsupported encoding: ${encoding}`);
+  }
+}
+
+function parseMultipartSegment(part) {
+  const [headersString, body] = part.split("\r\n\r\n", 2);
+  const headers = parseHeaders(headersString);
+  return {
+    headers,
+    body: body,
+  };
+}
+
+function stringifyMultipartSegment(part) {
+  return `${stringifyHeaders(part.headers)}\r\n\r\n${part.body}`;
+}
+
+function transformMultipartFormDataSegment(segment, options) {
+  const headers = matchIgnoreNames(segment.headers, {
+    matches: options.matchMultipartHeaders,
+    ignores: options.ignoreMultipartHeaders,
+    caseSensitive: false,
+  });
+  return {
+    ...segment,
+    headers,
+  };
+}
+
+function transformMultipartFormDataPostData(
+  postData,
+  originalMimeType,
+  options
+) {
+  const originalBoundary = originalMimeType.parameters.boundary;
+  if (!originalBoundary) {
+    return postData;
+  }
+  const newMimeType = {
+    ...originalMimeType,
+    parameters: {
+      ...originalMimeType.parameters,
+      boundary: options.replaceMultipartBoundary,
+    },
+  };
+  const newMimeTypeString = contentType.format(newMimeType);
+
+  const parts = decodeText(postData).split(`--${originalBoundary}`);
+  if (options.sortMultipart) {
+    const contentParts = parts
+      .slice(1, parts.length - 1)
+      .map(parseMultipartSegment)
+      .map((segment) => transformMultipartFormDataSegment(segment, options))
+      .map(stringifyMultipartSegment);
+    contentParts.sort();
+    parts.splice(1, contentParts.length, ...contentParts);
+  }
+  const text =
+    postData.text &&
+    encodeText({
+      text: parts.join(`--${options.replaceMultipartBoundary}`),
+      encoding: postData.encoding,
+    });
+
+  return {
+    ...postData,
+    mimeType: newMimeTypeString,
+    text,
+  };
+}
+
+function transformPostData(postData, options) {
+  const originalMimeTypeString = postData.mimeType;
+  const originalMimeType = contentType.parse(originalMimeTypeString);
+  if (originalMimeType.type === "multipart/form-data") {
+    return transformMultipartFormDataPostData(
+      postData,
+      originalMimeType,
+      options
+    );
+  } else {
+    return postData;
+  }
 }
 
 function transformRequest(request, options) {
@@ -28,7 +140,24 @@ function transformRequest(request, options) {
     url.search = "";
   }
 
-  let headers = matchIgnoreNames(request.headers, {
+  let headers = request.headers;
+
+  const postData =
+    (request.postData && transformPostData(request.postData, options)) ||
+    undefined;
+
+  // Make sure Content-Type is in equal to postData.mimeType.
+  if (
+    postData &&
+    getValueByName(headers, "Content-Type", { caseSensitive: false }) !==
+      postData.mimeType
+  ) {
+    headers = setValueByName(headers, "Content-Type", postData.mimeType, {
+      caseSensitive: false,
+    });
+  }
+
+  headers = matchIgnoreNames(headers, {
     matches: options.matchHeaders,
     ignores: options.ignoreHeaders,
     caseSensitive: false,
@@ -56,6 +185,7 @@ function transformRequest(request, options) {
     url: url.toString(),
     headers,
     queryString,
+    postData,
     headersSize: options.scrubSizes ? -1 : request.headersSize,
     bodySize: options.scrubSizes ? -1 : request.bodySize,
   };
@@ -150,21 +280,27 @@ function defineCommand(program) {
     .option("--ignore-query-string-params <param>", "", collect, [])
     .option("--match-headers <header>", "", collect, [])
     .option("--match-query-string-params <param>", "", collect, [])
+    .option("--match-multipart-headers <header>", "", collect, [])
+    .option("--ignore-multipart-headers <header>", "", collect, [])
     .option("--normalize-header-names")
     .option("--remove-query-string-from-url")
     .option("--replace-hostname <new_hostname>")
     .option("--replace-port <new_port>")
     .option("--replace-protocol <new_protocol>")
     .option("--replace-status-text <status_text>")
+    .option("--replace-multipart-boundary <new_boundary>")
     .option("--scrub-timings")
     .option("--scrub-sizes")
     .option("--sort-headers")
     .option("--sort-query-string-params")
+    .option("--sort-multipart")
     .action(createCommandAction(transform));
 }
 
 module.exports = {
   transform,
+  transformHar,
+  transformPostData,
   transformRequest,
   defineCommand,
 };
