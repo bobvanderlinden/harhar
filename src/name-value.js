@@ -89,6 +89,32 @@ function matchIgnoreNames(
   return result;
 }
 
+function setValueByName(nameValues, name, newValue, { caseSensitive = true }) {
+  const result = [];
+  let isReplaced = false;
+  for (const entry of nameValues) {
+    const matchesName = caseSensitive
+      ? entry.name === name
+      : entry.name.toLowerCase() === name.toLowerCase();
+    if (matchesName && !isReplaced) {
+      result.push({
+        name: entry.name,
+        value: newValue,
+      });
+      isReplaced = true;
+    } else if (matchesName && isReplaced) {
+      // Skip this entry.
+      continue;
+    } else {
+      result.push(entry);
+    }
+  }
+  if (!isReplaced) {
+    result.push({ name, value: newValue });
+  }
+  return result;
+}
+
 module.exports = {
   compareName,
   sortByName,
@@ -101,4 +127,5 @@ module.exports = {
   toObject,
   getValueByName,
   getValuesByName,
+  setValueByName,
 };

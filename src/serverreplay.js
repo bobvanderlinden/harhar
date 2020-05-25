@@ -1,4 +1,8 @@
-const { matchIgnoreNames, sortByName } = require("./name-value");
+const {
+  matchIgnoreNames,
+  sortByName,
+  getValueByName,
+} = require("./name-value");
 const http = require("http");
 const { URL } = require("url");
 const hash = require("object-hash");
@@ -18,6 +22,7 @@ const { runServer } = require("./server");
 function hashHarRequest(
   request,
   {
+    matchRequestId,
     ignoreHostname,
     ignorePort,
     matchHeaders,
@@ -74,20 +79,23 @@ function hashHarRequest(
       }) ||
     undefined;
 
-  const hashInput = {
-    method: request.method,
-    hostname: !ignoreHostname && url.hostname,
-    port: !ignorePort && url.port,
-    pathname: url.pathname,
-    headers: headers,
-    queryString: queryStringParams,
-    postData,
-  };
-  const requestHash = hash(hashInput);
-  const requestId = request.headers
-    .filter(({ name }) => name === "X-Request-ID")
-    .map(({ value }) => value)[0];
+  const requestId = getValueByName(request.headers, "X-Request-Id", {
+    caseSensitive: false,
+  });
 
+  const hashInput =
+    matchRequestId && requestId
+      ? requestId
+      : {
+          method: request.method,
+          hostname: !ignoreHostname && url.hostname,
+          port: !ignorePort && url.port,
+          pathname: url.pathname,
+          headers: headers,
+          queryString: queryStringParams,
+          postData,
+        };
+  const requestHash = hash(hashInput);
   log.debug({
     message: "Hashing request",
     input: hashInput,
@@ -174,6 +182,7 @@ function defineCommand(program) {
     )
     .requiredOption("--port <port>")
     .requiredOption("--input <har_file>")
+    .option("--match-request-id", "", false)
     .option("--ignore-hostname", "", false)
     .option("--ignore-port", "", false)
     .option("--match-headers <header>", "", collect, [])
