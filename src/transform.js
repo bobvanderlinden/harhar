@@ -1,5 +1,6 @@
 const { readHarFile, writeHarFile } = require("./har");
 const { URL } = require("url");
+const { v4: uuidv4 } = require("uuid");
 const {
   matchIgnoreNames,
   sortByName,
@@ -220,6 +221,47 @@ function transformResponse(response, options) {
 }
 
 function transformEntry(entry, options) {
+  if (options.fabricateRequestIds) {
+    const requestRequestId = getValueByName(
+      entry.request.headers,
+      "X-Request-Id",
+      { caseSensitive: false }
+    );
+    const responseRequestId = getValueByName(
+      entry.response.headers,
+      "X-Request-Id",
+      { caseSensitive: false }
+    );
+    const requestId = requestRequestId || responseRequestId || uuidv4();
+    if (!requestRequestId || !responseRequestId) {
+      entry = {
+        ...entry,
+        request: requestRequestId
+          ? entry.request
+          : {
+              ...entry.request,
+              headers: setValueByName(
+                entry.request.headers,
+                "X-Request-Id",
+                requestId,
+                { caseSensitive: false }
+              ),
+            },
+        response: responseRequestId
+          ? entry.response
+          : {
+              ...entry.response,
+              headers: setValueByName(
+                entry.response.headers,
+                "X-Request-Id",
+                requestId,
+                { caseSensitive: false }
+              ),
+            },
+      };
+    }
+  }
+
   return {
     ...entry,
     startedDateTime: options.scrubTimings ? undefined : entry.startedDateTime,
@@ -294,6 +336,10 @@ function defineCommand(program) {
     .option("--sort-headers")
     .option("--sort-query-string-params")
     .option("--sort-multipart")
+    .option(
+      "--fabricate-request-ids",
+      "Adds request ids to all requests and responses that do not already have request ids"
+    )
     .action(createCommandAction(transform));
 }
 
