@@ -163,7 +163,7 @@ async function runCommand({ port, input, record, ...options }) {
   const abortController = createAbortController();
   const harInput = await readHarFile(input);
 
-  const result = await run({ port, harInput, abortController, options });
+  const result = await run({ port, harInput, abortController, ...options });
 
   if (record) {
     log.info({
