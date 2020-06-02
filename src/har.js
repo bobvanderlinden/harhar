@@ -60,7 +60,10 @@ function createEntry({
 
 function createRequest({ url, ...request }) {
   return {
+    method: 'GET',
     url,
+    httpVersion: 'HTTP/1.1',
+    cookies: [],
     headers: [],
     queryString: [],
     headersSize: -1,
@@ -73,9 +76,9 @@ function createResponse(response) {
   return {
     status: 200,
     statusText: "OK",
-    httpVersion: "1.1",
-    headers: [],
+    httpVersion: "HTTP/1.1",
     cookies: [],
+    headers: [],
     content: {
       size: 0,
       mimeType: "x-unknown",

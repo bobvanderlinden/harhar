@@ -5,7 +5,7 @@ const { Readable } = require("stream");
 const http = require("http");
 const https = require("https");
 const { fromRawHeaders, toObject } = require("./name-value");
-const { createErrorHarResponse } = require("./har");
+const { createErrorHarResponse, createRequest, createResponse } = require("./har");
 const { StringDecoder } = require("string_decoder");
 
 function getHeaders(req) {
@@ -89,7 +89,7 @@ async function getHarRequestFromNodeRequest(nodeRequest) {
   const headers = getHeaders(nodeRequest);
   const queryString = convertURLSearchParamsToNameValues(url.searchParams);
   const postData = await getPostDataFromNodeRequest(nodeRequest);
-  return {
+  return createRequest({
     method: nodeRequest.method,
     url: url.toString(),
     httpVersion: nodeRequest.httpVersion,
@@ -98,7 +98,7 @@ async function getHarRequestFromNodeRequest(nodeRequest) {
     postData,
     headersSize: -1,
     bodySize: -1,
-  };
+  });
 }
 
 async function readStream(stream) {
@@ -190,17 +190,14 @@ async function getHarResponseFromHttpResponse(response) {
         mimeType,
         text: bodyBuffer.toString("utf-8"),
       };
-  return {
+  return createResponse({
     status,
     statusText,
     httpVersion: "HTTP/1.1",
-    cookies: {},
     headers,
     content,
-    redirectURL: "",
-    headersSize: -1,
     bodySize: bodyBuffer.length,
-  };
+  });
 }
 
 async function tryCatch(tryFn, catchFn) {
