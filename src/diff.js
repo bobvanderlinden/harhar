@@ -5,12 +5,14 @@ const { createCommandAction, collect } = require("./command-utils");
 const hash = require("object-hash");
 
 function hashEntry(entry, options) {
+  const requestId = getValueByName(entry.request.headers, "x-request-id", {
+    caseSensitive: false,
+  });
+
+  if (options.matchRequestId && requestId) {
+    return requestId;
+  }
   const hashObject = {
-    requestId:
-      options.matchRequestId &&
-      getValueByName(entry.request.headers, "x-request-id", {
-        caseSensitive: false,
-      }),
     startedDateTime: options.matchStartedDateTime && entry.startedDateTime,
     method: options.matchMethod && entry.request.method,
     url: options.matchUrl && entry.request.url,
