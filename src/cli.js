@@ -44,5 +44,6 @@ function main(argv) {
 }
 
 module.exports = {
+  program,
   main,
 };
