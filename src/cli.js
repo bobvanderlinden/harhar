@@ -5,6 +5,7 @@ const clientreplay = require("./clientreplay");
 const proxy = require("./proxy");
 const diff = require("./diff");
 const transform = require("./transform");
+const validate = require("./validate");
 
 program
   .name("harhar")
@@ -20,7 +21,14 @@ program
     });
   });
 
-const subprograms = [serverreplay, clientreplay, proxy, diff, transform];
+const subprograms = [
+  serverreplay,
+  clientreplay,
+  proxy,
+  diff,
+  transform,
+  validate,
+];
 
 for (const subprogram of subprograms) {
   subprogram.defineCommand(program);
