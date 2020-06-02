@@ -34,10 +34,6 @@ for (const subprogram of subprograms) {
   subprogram.defineCommand(program);
 }
 
-program.command("*").action(() => {
-  program.help();
-});
-
 function main(argv) {
   winston.configure({
     transports: [
