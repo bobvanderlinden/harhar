@@ -71,6 +71,7 @@ describe("proxy", () => {
               "cache": Object {},
               "request": Object {
                 "bodySize": -1,
+                "cookies": Array [],
                 "headers": Array [
                   Object {
                     "name": "Host",
@@ -95,7 +96,7 @@ describe("proxy", () => {
                   "size": 0,
                   "text": "",
                 },
-                "cookies": Object {},
+                "cookies": Array [],
                 "headers": Array [
                   Object {
                     "name": "Connection",
@@ -152,6 +153,7 @@ describe("proxy", () => {
               "cache": Object {},
               "request": Object {
                 "bodySize": -1,
+                "cookies": Array [],
                 "headers": Array [
                   Object {
                     "name": "Host",
@@ -184,7 +186,7 @@ describe("proxy", () => {
                   "size": 0,
                   "text": "",
                 },
-                "cookies": Object {},
+                "cookies": Array [],
                 "headers": Array [
                   Object {
                     "name": "Connection",

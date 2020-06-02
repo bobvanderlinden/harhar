@@ -57,6 +57,7 @@ describe("serverreplay", () => {
               "cache": Object {},
               "request": Object {
                 "bodySize": -1,
+                "cookies": Array [],
                 "headers": Array [
                   Object {
                     "name": "Host",
@@ -83,7 +84,7 @@ describe("serverreplay", () => {
                 "cookies": Array [],
                 "headers": Array [],
                 "headersSize": -1,
-                "httpVersion": "1.1",
+                "httpVersion": "HTTP/1.1",
                 "redirectURL": "",
                 "status": 200,
                 "statusText": "OK",
