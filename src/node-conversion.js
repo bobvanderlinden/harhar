@@ -51,19 +51,16 @@ function isBinaryMimeType(mimeType) {
   if (/^text\//.test(mimeType)) {
     return false;
   }
-  if (/^image\//.test(mimeType)) {
-    return true;
+  if (/^application\/json(\W|$)/.test(mimeType)) {
+    return false;
   }
-  if (/^application\/octet-stream/.test(mimeType)) {
-    return true;
+  if (/^application\/xml(;|\+|$)/.test(mimeType)) {
+    return false;
   }
   if (/^application\/x-www-form-urlencoded/.test(mimeType)) {
     return false;
   }
-  if (/^multipart\//.test(mimeType)) {
-    return true;
-  }
-  return false;
+  return true;
 }
 
 async function getPostDataFromNodeRequest(nodeRequest) {
