@@ -5,7 +5,11 @@ const { Readable } = require("stream");
 const http = require("http");
 const https = require("https");
 const { fromRawHeaders, toObject } = require("./name-value");
-const { createErrorHarResponse, createRequest, createResponse } = require("./har");
+const {
+  createErrorHarResponse,
+  createRequest,
+  createResponse,
+} = require("./har");
 const { StringDecoder } = require("string_decoder");
 
 function getHeaders(req) {

@@ -69,15 +69,15 @@ function toObject(nameValues) {
 }
 
 function parseHeaders(headersString) {
-  const headerLines = headersString.split('\r\n');
-  return headerLines.map(headerLine => {
+  const headerLines = headersString.split("\r\n");
+  return headerLines.map((headerLine) => {
     const [name, value] = headerLine.split(/: ?/, 2);
     return { name, value };
   });
 }
 
 function stringifyHeaders(nameValues) {
-  return nameValues.map(({name, value}) => `${name}: ${value}`).join('\r\n');
+  return nameValues.map(({ name, value }) => `${name}: ${value}`).join("\r\n");
 }
 
 function matchIgnoreNames(

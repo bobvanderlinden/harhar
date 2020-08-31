@@ -1,17 +1,9 @@
 const { readHarFile } = require("./har");
-const {
-  matchIgnoreNames,
-  sortByName,
-  mapNames,
-  getValueByName,
-  setValueByName,
-  parseHeaders,
-  stringifyHeaders,
-} = require("./name-value");
+const { getValueByName } = require("./name-value");
 const { collect, createCommandAction } = require("./command-utils");
 const harValidator = require("har-validator");
 
-async function validateHarSchema(har, options) {
+async function validateHarSchema(har) {
   try {
     await harValidator.har(har);
     return [];
@@ -93,7 +85,7 @@ function validateHarRequirements(har, options) {
 
 async function validateHar(har, options) {
   return [
-    ...(await validateHarSchema(har, options)),
+    ...(await validateHarSchema(har)),
     ...validateHarRequirements(har, options),
   ];
 }

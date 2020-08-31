@@ -60,9 +60,9 @@ function createEntry({
 
 function createRequest({ url, ...request }) {
   return {
-    method: 'GET',
+    method: "GET",
     url,
-    httpVersion: 'HTTP/1.1',
+    httpVersion: "HTTP/1.1",
     cookies: [],
     headers: [],
     queryString: [],
