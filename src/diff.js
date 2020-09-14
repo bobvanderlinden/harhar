@@ -101,6 +101,9 @@ async function diff(input1, input2, options) {
       console.log(diffString);
     }
   }
+
+  // Set exitCode to failure if there are differences between inputs.
+  process.exitCode = unmatchingPairs.length > 0 ? 1 : 0;
 }
 
 function defineCommand(program) {
