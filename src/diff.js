@@ -71,11 +71,13 @@ async function diff(input1, input2, options) {
       (entriesByRequestId) => entriesByRequestId[requestId] || []
     )
   );
+  let foundDifference = false;
   const unmatchingPairs = pairs.filter(
     ([entry1, entry2]) => !Object.is(entry1, entry2)
   );
   for (const [entry1, entry2] of unmatchingPairs) {
     if (entry1.length === 0 || entry2.length === 0) {
+      foundDifference = true;
       console.log(
         [`--- ${input1}`, `+++ ${input2}`]
           .concat(entry1.map((entry) => `-- ${stringifyEntry(entry, options)}`))
@@ -92,6 +94,7 @@ async function diff(input1, input2, options) {
       if (diffString.includes("Compared values have no visual difference.")) {
         continue;
       }
+      foundDifference = true;
       console.log(
         [`--- ${input1}`, `+++ ${input2}`]
           .concat(entry1.map((entry) => `-- ${stringifyEntry(entry)}`))
@@ -103,7 +106,7 @@ async function diff(input1, input2, options) {
   }
 
   // Set exitCode to failure if there are differences between inputs.
-  process.exitCode = unmatchingPairs.length > 0 ? 1 : 0;
+  process.exitCode = foundDifference ? 1 : 0;
 }
 
 function defineCommand(program) {
